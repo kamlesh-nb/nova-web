@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { withBase } from 'vitepress'
 // The landing is a "stack ledger": Nova shown as the sequence of layers it unifies, each row noting
 // what it replaces. The numbering is real (source -> running system), not decoration.
 const layers = [
@@ -56,8 +57,8 @@ const chips = [
         database built for the same stack, and a native orchestrator to run it in production.
       </p>
       <div class="nv-mast-links">
-        <a class="nv-link nv-link-azure" href="/guide/">Read the guide →</a>
-        <a class="nv-link" href="/guide/17-web">Build a web app</a>
+        <a class="nv-link nv-link-azure" :href="withBase('/guide/')">Read the guide →</a>
+        <a class="nv-link" :href="withBase('/guide/17-web')">Build a web app</a>
         <a class="nv-link" href="https://github.com/kamlesh-nb/nova">GitHub</a>
       </div>
     </header>
@@ -91,7 +92,7 @@ const chips = [
         <span class="nv-pillar-tag">{{ p.tag }}</span>
         <h2 class="nv-pillar-title">{{ p.title }}</h2>
         <p class="nv-pillar-body">{{ p.body }}</p>
-        <a class="nv-pillar-link" :href="p.link">{{ p.cta }} →</a>
+        <a class="nv-pillar-link" :href="withBase(p.link)">{{ p.cta }} →</a>
       </article>
     </section>
 
@@ -105,7 +106,7 @@ const chips = [
           <code>Connection</code> seam. No mediator, no dependency-injection container. This is the whole
           thing.
         </p>
-        <a class="nv-link nv-link-azure" href="/guide/17-web">See the full walkthrough →</a>
+        <a class="nv-link nv-link-azure" :href="withBase('/guide/17-web')">See the full walkthrough →</a>
       </div>
       <pre class="nv-pre"><code><span class="c">// GET /api/products/{id:int}</span>
 <span class="k">pub struct</span> <span class="t">GetProductByIdHandler</span> <span class="k">impl</span> <span class="t">RouteHandler</span> {
@@ -139,24 +140,24 @@ const chips = [
       <div class="nv-read-cols">
         <div class="nv-read-col">
           <span class="nv-read-k">Language</span>
-          <a href="/guide/01-getting-started">Getting started</a>
-          <a href="/guide/07-structs">Structs and classes</a>
-          <a href="/guide/11-error-handling">Error handling</a>
-          <a href="/guide/15-concurrency">Concurrency</a>
+          <a :href="withBase('/guide/01-getting-started')">Getting started</a>
+          <a :href="withBase('/guide/07-structs')">Structs and classes</a>
+          <a :href="withBase('/guide/11-error-handling')">Error handling</a>
+          <a :href="withBase('/guide/15-concurrency')">Concurrency</a>
         </div>
         <div class="nv-read-col">
           <span class="nv-read-k">Web and data</span>
-          <a href="/guide/17-web">Web applications</a>
-          <a href="/guide/18-data-access">Data access and the ORM</a>
-          <a href="/guide/19-package-management">Package management</a>
-          <a href="/guide/20-database-drivers">Database drivers</a>
+          <a :href="withBase('/guide/17-web')">Web applications</a>
+          <a :href="withBase('/guide/18-data-access')">Data access and the ORM</a>
+          <a :href="withBase('/guide/19-package-management')">Package management</a>
+          <a :href="withBase('/guide/20-database-drivers')">Database drivers</a>
         </div>
         <div class="nv-read-col">
           <span class="nv-read-k">Platform</span>
-          <a href="/guide/21-architecture">Architecture</a>
-          <a href="/guide/22-building-and-distribution">Building and distributing</a>
-          <a href="/guide/23-deploying-with-the-orchestrator">Deploying</a>
-          <a href="/guide/24-blob-store">Artifact delivery</a>
+          <a :href="withBase('/guide/21-architecture')">Architecture</a>
+          <a :href="withBase('/guide/22-building-and-distribution')">Building and distributing</a>
+          <a :href="withBase('/guide/23-deploying-with-the-orchestrator')">Deploying</a>
+          <a :href="withBase('/guide/24-blob-store')">Artifact delivery</a>
         </div>
       </div>
     </section>

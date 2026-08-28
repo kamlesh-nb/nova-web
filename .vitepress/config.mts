@@ -10,6 +10,9 @@ export default defineConfig({
     ],
   },
   title: 'Nova',
+  // Project page at https://kamlesh-nb.github.io/nova-web/ . Change to '/' for a user page or a
+  // custom domain. The home component uses withBase(), so internal links follow this automatically.
+  base: '/nova-web/',
   description:
     'Nova is a statically-typed language built for hypermedia web applications, with an async thread-per-core runtime, an embedded B+Tree database (NovaDB), and a native orchestrator. One language, one toolchain, one binary.',
   cleanUrls: true,
