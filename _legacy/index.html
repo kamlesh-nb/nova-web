@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nova — Native, Container-Free Event Engine & Programming Language</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Nova is a statically-typed language with ES6 syntax, featuring a share-nothing thread-per-core scheduler, container-grade process sandboxing, and an embedded transactional B-tree storage engine.">
+    <meta name="keywords" content="Nova, programming language, C++20 runtime, NovaDB, container-free, sandboxing, thread-per-core, async runtime, compiler, Zig">
+    
+    <!-- Social Sharing -->
+    <meta property="og:title" content="Nova — Native, Container-Free Event Engine">
+    <meta property="og:description" content="Build high-performance native services without container overhead. Statically typed, ES6 syntax, C++20 runtime.">
+    <meta property="og:type" content="website">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;500;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Main Stylesheet -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="dark-mode">
+
+    <!-- Glowing Background blobs -->
+    <div class="glow-bg glow-cyan"></div>
+    <div class="glow-bg glow-violet"></div>
+    <div class="glow-bg glow-emerald"></div>
+
+    <!-- Header Navigation -->
+    <header class="header">
+        <div class="header-container">
+            <div class="brand">
+                <img src="assets/nova_logo.png" alt="Nova Logo" class="brand-logo" id="brand-logo-img">
+                <span class="brand-name">Nova</span>
+            </div>
+            <nav class="nav">
+                <a href="#simulator" class="nav-link">Interactive Engine</a>
+                <a href="#benchmarks" class="nav-link">Performance Sandbox</a>
+                <a href="#code-tour" class="nav-link">Code Tour</a>
+                <button class="btn btn-secondary btn-sm" id="btn-open-docs">Architecture Docs</button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Hero -->
+    <section class="hero">
+        <div class="hero-container">
+            <div class="hero-content">
+                <div class="badge">BETA IS LIVE</div>
+                <h1 class="hero-title">The Native, <span class="text-gradient">Container-Free</span> Event Engine.</h1>
+                <p class="hero-description">
+                    Nova is a statically-typed programming language combining **ES6 syntax** with a lock-free, **thread-per-core C++20 runtime**, an embedded transactional **B+Tree database**, and native container-grade sandboxing. 
+                    No virtual machines. No Docker overhead. Run on bare metal.
+                </p>
+                <div class="hero-actions">
+                    <a href="#simulator" class="btn btn-primary">Explore the Engine</a>
+                    <a href="#code-tour" class="btn btn-secondary">See Code</a>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="hero-visual-card">
+                    <img src="assets/nova_logo.png" alt="Nova Logo Glowing" class="hero-center-logo">
+                    <div class="visual-grid"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 1: The Interactive Alive Engine Simulator -->
+    <section id="simulator" class="section">
+        <div class="section-container">
+            <div class="section-header text-center">
+                <h2 class="section-title">The "Alive Engine" Simulator</h2>
+                <p class="section-subtitle">Click actions below to trace how a request flows through Nova's unified compile, runtime, sandbox, and database layers.</p>
+            </div>
+            
+            <div class="simulator-wrapper">
+                <div class="simulator-controls">
+                    <button class="sim-btn active" data-action="http_request">
+                        <span class="sim-icon">🌐</span>
+                        <div class="sim-btn-text">
+                            <strong>HTTP GET /products</strong>
+                            <span>Web request routing</span>
+                        </div>
+                    </button>
+                    <button class="sim-btn" data-action="db_write">
+                        <span class="sim-icon">💾</span>
+                        <div class="sim-btn-text">
+                            <strong>NovaDB Write Transaction</strong>
+                            <span>Slotted page MVCC write</span>
+                        </div>
+                    </button>
+                    <button class="sim-btn" data-action="autoscale">
+                        <span class="sim-icon">⚡</span>
+                        <div class="sim-btn-text">
+                            <strong>Autoscale Replica Set</strong>
+                            <span>PID-driven native scaling</span>
+                        </div>
+                    </button>
+                </div>
+
+                <div class="simulator-display">
+                    <!-- Interactive Visual Map of the Engine layers -->
+                    <div class="engine-map">
+                        
+                        <!-- Layer 1: Client Gateway -->
+                        <div class="engine-layer" id="layer-client">
+                            <div class="layer-header">
+                                <span class="layer-number">01</span>
+                                <span class="layer-title">Network Layer</span>
+                            </div>
+                            <div class="layer-body">
+                                <div class="node-box" id="node-client">
+                                    <div class="node-glow"></div>
+                                    <div class="node-name">L7 Reverse Proxy</div>
+                                    <div class="node-meta">SO_REUSEPORT Accept</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Connector -->
+                        <div class="engine-connector">
+                            <div class="pulse-line" id="pulse-1"></div>
+                        </div>
+
+                        <!-- Layer 2: Sandbox Isolation -->
+                        <div class="engine-layer" id="layer-sandbox">
+                            <div class="layer-header">
+                                <span class="layer-number">02</span>
+                                <span class="layer-title">Process Sandbox</span>
+                            </div>
+                            <div class="layer-body">
+                                <div class="node-box" id="node-sandbox">
+                                    <div class="node-glow"></div>
+                                    <div class="node-name">cgroups & namespaces</div>
+                                    <div class="node-meta">Container-grade isolation</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Connector -->
+                        <div class="engine-connector">
+                            <div class="pulse-line" id="pulse-2"></div>
+                        </div>
+
+                        <!-- Layer 3: Runtime Reactor -->
+                        <div class="engine-layer" id="layer-runtime">
+                            <div class="layer-header">
+                                <span class="layer-number">03</span>
+                                <span class="layer-title">C++20 Runtime</span>
+                            </div>
+                            <div class="layer-body flex-row">
+                                <div class="reactor-thread active" id="reactor-0">
+                                    <span>Reactor 0</span>
+                                    <div class="cpu-bar"><div class="cpu-fill"></div></div>
+                                </div>
+                                <div class="reactor-thread" id="reactor-1">
+                                    <span>Reactor 1</span>
+                                    <div class="cpu-bar"><div class="cpu-fill"></div></div>
+                                </div>
+                                <div class="reactor-thread" id="reactor-2">
+                                    <span>Reactor 2</span>
+                                    <div class="cpu-bar"><div class="cpu-fill"></div></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Connector -->
+                        <div class="engine-connector">
+                            <div class="pulse-line" id="pulse-3"></div>
+                        </div>
+
+                        <!-- Layer 4: Storage Engine -->
+                        <div class="engine-layer" id="layer-storage">
+                            <div class="layer-header">
+                                <span class="layer-number">04</span>
+                                <span class="layer-title">NovaDB storage</span>
+                            </div>
+                            <div class="layer-body">
+                                <div class="node-box" id="node-storage">
+                                    <div class="node-glow"></div>
+                                    <div class="node-name">B+Tree Slotted Page</div>
+                                    <div class="node-meta">MVCC Undo Log & WAL</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Side Code & Details panel -->
+                    <div class="simulator-details glass">
+                        <div class="details-header">
+                            <h3 id="detail-title">Action Trace</h3>
+                            <span class="badge badge-cyan" id="detail-status">Ready</span>
+                        </div>
+                        <div class="details-body">
+                            <p id="detail-description">Select an action on the left to start tracing compilation and runtime pathways.</p>
+                            
+                            <div class="detail-code-section">
+                                <div class="code-title">Execution Context Code</div>
+                                <pre><code class="language-nova" id="detail-code">// Code snippet will load here...</code></pre>
+                            </div>
+                            
+                            <div class="stats-panel">
+                                <div class="stat-item">
+                                    <span class="stat-label">Scheduler Latency</span>
+                                    <span class="stat-value text-gradient" id="stat-latency">--</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Memory Overhead</span>
+                                    <span class="stat-value text-gradient" id="stat-mem">--</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Threading Model</span>
+                                    <span class="stat-value text-gradient" id="stat-threads">--</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 2: Real-time Performance Sandbox -->
+    <section id="benchmarks" class="section bg-card">
+        <div class="section-container">
+            <div class="section-header text-center">
+                <h2 class="section-title">Performance Sandbox</h2>
+                <p class="section-subtitle">Adjust the workspace parameters to see how Nova behaves dynamically compared to traditional language setups.</p>
+            </div>
+
+            <div class="benchmark-grid">
+                <div class="benchmark-panel glass">
+                    <h3>Simulation Controllers</h3>
+                    <p class="panel-desc">Drag the handles below to simulate workload scaling.</p>
+                    
+                    <div class="control-group">
+                        <div class="control-label">
+                            <span>Concurrency (Active Connections)</span>
+                            <span class="control-value" id="val-concurrency">10,000</span>
+                        </div>
+                        <input type="range" min="1000" max="100000" step="1000" value="10000" class="slider" id="slider-concurrency">
+                    </div>
+
+                    <div class="control-group">
+                        <div class="control-label">
+                            <span>CPU Core Count</span>
+                            <span class="control-value" id="val-cores">4 Cores</span>
+                        </div>
+                        <input type="range" min="1" max="32" step="1" value="4" class="slider" id="slider-cores">
+                    </div>
+
+                    <div class="control-group">
+                        <div class="control-label">
+                            <span>Autoscale Workload limit</span>
+                            <span class="control-value" id="val-limit">5 Replicas</span>
+                        </div>
+                        <input type="range" min="1" max="20" step="1" value="5" class="slider" id="slider-limit">
+                    </div>
+                </div>
+
+                <div class="benchmark-display glass">
+                    <div class="display-header">
+                        <h3>Simulated Real-time Metrics</h3>
+                        <span class="badge badge-emerald">Active Simulation</span>
+                    </div>
+                    
+                    <div class="metrics-grid">
+                        <div class="metric-chart-card">
+                            <span class="chart-title">Latency (Lower is better)</span>
+                            <div class="chart-bars">
+                                <div class="chart-row">
+                                    <span class="chart-lang">Nova</span>
+                                    <div class="chart-bar-container">
+                                        <div class="chart-bar bar-nova" id="bar-latency-nova" style="width: 12%"></div>
+                                    </div>
+                                    <span class="chart-num" id="num-latency-nova">0.8 ms</span>
+                                </div>
+                                <div class="chart-row">
+                                    <span class="chart-lang">Go (Net)</span>
+                                    <div class="chart-bar-container">
+                                        <div class="chart-bar bar-go" id="bar-latency-go" style="width: 35%"></div>
+                                    </div>
+                                    <span class="chart-num" id="num-latency-go">2.4 ms</span>
+                                </div>
+                                <div class="chart-row">
+                                    <span class="chart-lang">Node (V8)</span>
+                                    <div class="chart-bar-container">
+                                        <div class="chart-bar bar-node" id="bar-latency-node" style="width: 78%"></div>
+                                    </div>
+                                    <span class="chart-num" id="num-latency-node">5.6 ms</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="metric-chart-card">
+                            <span class="chart-title">Memory Allocation (Lower is better)</span>
+                            <div class="chart-bars">
+                                <div class="chart-row">
+                                    <span class="chart-lang">Nova</span>
+                                    <div class="chart-bar-container">
+                                        <div class="chart-bar bar-nova" id="bar-mem-nova" style="width: 5%"></div>
+                                    </div>
+                                    <span class="chart-num" id="num-mem-nova">8 MB</span>
+                                </div>
+                                <div class="chart-row">
+                                    <span class="chart-lang">Go (App)</span>
+                                    <div class="chart-bar-container">
+                                        <div class="chart-bar bar-go" id="bar-mem-go" style="width: 25%"></div>
+                                    </div>
+                                    <span class="chart-num" id="num-mem-go">38 MB</span>
+                                </div>
+                                <div class="chart-row">
+                                    <span class="chart-lang">Node (Docker)</span>
+                                    <div class="chart-bar-container">
+                                        <div class="chart-bar bar-node" id="bar-mem-node" style="width: 90%"></div>
+                                    </div>
+                                    <span class="chart-num" id="num-mem-node">180 MB</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="benchmark-note">
+                        <strong>Architectural Insight:</strong> Nova bypasses the virtual net and filesystem container abstractions. Its scheduler pins a single event loop to each CPU core, avoiding cross-core locking while accessing memory segments directly via raw pointers inside cgroup bounds.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 3: Code Tour & Live Visualizer -->
+    <section id="code-tour" class="section">
+        <div class="section-container">
+            <div class="section-header text-center">
+                <h2 class="section-title">The Code Tour</h2>
+                <p class="section-subtitle">Browse through core templates and see the matching visual representation of how the language runtime organizes it.</p>
+            </div>
+
+            <div class="tour-grid">
+                <div class="tour-tabs">
+                    <button class="tour-tab active" data-tab="web">
+                        <h4>HTTP Web Server</h4>
+                        <p>MediatR style minimal API</p>
+                    </button>
+                    <button class="tour-tab" data-tab="db">
+                        <h4>Database Client</h4>
+                        <p>Embedded BTree query seam</p>
+                    </button>
+                    <button class="tour-tab" data-tab="actor">
+                        <h4>Actor Concurrency</h4>
+                        <p>Mailboxes & bounded channels</p>
+                    </button>
+                    <button class="tour-tab" data-tab="sandbox">
+                        <h4>Workload Sandbox</h4>
+                        <p>cgroup and namespace supervisor</p>
+                    </button>
+                </div>
+
+                <div class="tour-content glass">
+                    <div class="code-viewer">
+                        <div class="code-header">
+                            <span class="dot red"></span>
+                            <span class="dot yellow"></span>
+                            <span class="dot green"></span>
+                            <span class="file-name" id="tour-file-name">server.nova</span>
+                        </div>
+                        <pre><code class="language-nova" id="tour-code-content">// Code will load here...</code></pre>
+                    </div>
+
+                    <div class="visual-panel">
+                        <h4 id="tour-visual-title">Web Accept Visualizer</h4>
+                        <p id="tour-visual-desc">Description of the compile and run path.</p>
+                        
+                        <!-- Dynamic Visual Canvas containing images/SVGs corresponding to code tabs -->
+                        <div class="tour-visual-canvas">
+                            <div class="canvas-item active" id="canvas-web">
+                                <div class="accept-loop">
+                                    <div class="accept-socket">Port 8080</div>
+                                    <div class="accept-arrows">➔ ➔ ➔</div>
+                                    <div class="reactors-group">
+                                        <div class="reactor-box active">Core 0</div>
+                                        <div class="reactor-box">Core 1</div>
+                                        <div class="reactor-box">Core 2</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="canvas-item" id="canvas-db">
+                                <img src="assets/btreedb_illustration.png" alt="NovaDB Slotted Page" class="canvas-image">
+                            </div>
+                            <div class="canvas-item" id="canvas-actor">
+                                <div class="mailbox-visualizer">
+                                    <div class="sender-nodes">
+                                        <div class="s-node">Sender A</div>
+                                        <div class="s-node">Sender B</div>
+                                    </div>
+                                    <div class="mailbox-channel">Bounded Channel (Queue)</div>
+                                    <div class="mailbox-actor">Actor (Coroutine Loop)</div>
+                                </div>
+                            </div>
+                            <div class="canvas-item" id="canvas-sandbox">
+                                <img src="assets/orchestrator_illustration.png" alt="Orchestrator Sandbox" class="canvas-image">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Packages Section -->
+    <section class="section bg-card">
+        <div class="section-container">
+            <div class="section-header text-center">
+                <h2 class="section-title">Ecosystem Packages</h2>
+                <p class="section-subtitle">Nova delegates database drivers and system supervisors to official packages for clean architecture.</p>
+            </div>
+            
+            <div class="packages-grid">
+                <div class="package-card glass">
+                    <div class="pkg-header">
+                        <span class="pkg-icon">📦</span>
+                        <h3>nova-orchestrator</h3>
+                    </div>
+                    <p>A Kubernetes-style control plane written entirely in Nova. Spawns workloads inside namespace sandboxes directly on cgroups-v2 limits.</p>
+                    <span class="pkg-tag">Core Infrastructure</span>
+                </div>
+                <div class="package-card glass">
+                    <div class="pkg-header">
+                        <span class="pkg-icon">🗄️</span>
+                        <h3>nova-novadb</h3>
+                    </div>
+                    <p>Official client driver for the embedded B+Tree database engine. Connects over binary wire protocol and implements standard DB traits.</p>
+                    <span class="pkg-tag">Database Driver</span>
+                </div>
+                <div class="package-card glass">
+                    <div class="pkg-header">
+                        <span class="pkg-icon">🔌</span>
+                        <h3>Database Connectors</h3>
+                    </div>
+                    <p>Plug-and-play client drivers for PostgreSQL, MySQL, MSSQL, and MongoDB implementing the same abstract traits.</p>
+                    <span class="pkg-tag">External Drivers</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-left">
+                <div class="brand">
+                    <img src="assets/nova_logo.png" alt="Nova Logo" class="brand-logo-small">
+                    <span class="brand-name">Nova</span>
+                </div>
+                <p class="footer-desc">A modern compiler & runtime engine for hyper-efficient hypermedia and microservice environments.</p>
+            </div>
+            <div class="footer-right">
+                <p>&copy; 2026 Nova Language Project. Driven by native execution.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Native Popover Slide-Over Document Panel (Built with Modern CSS and Popover API) -->
+    <div popover id="docs-drawer" class="docs-drawer glass">
+        <div class="docs-drawer-header">
+            <h3>Technical Architecture Docs</h3>
+            <button class="btn-close" id="btn-close-docs" popovertarget="docs-drawer">✕</button>
+        </div>
+        <div class="docs-drawer-body">
+            <div class="docs-sidebar">
+                <ul class="docs-menu" id="docs-menu-list">
+                    <!-- Dynamically populated from docs.js -->
+                </ul>
+            </div>
+            <div class="docs-content" id="docs-content-pane">
+                <div class="docs-loading">Select a document from the menu to load details.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Links -->
+    <script src="docs.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
