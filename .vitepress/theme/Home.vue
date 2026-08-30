@@ -38,6 +38,7 @@ const chips = [
   'B+Tree MVCC', 'Write-ahead log', 'Self-hosted TLS 1.3', 'Hardware AES / SHA',
   'Hypermedia web', 'Five DB drivers', 'Compile-time SQL checks',
   'Zero-downtime deploys', 'Cross-compiles Linux / Windows / macOS',
+  'Language server (LSP)', 'VS Code extension', 'In-editor debugger', 'Package manager',
 ]
 </script>
 

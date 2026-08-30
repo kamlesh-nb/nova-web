@@ -11,6 +11,18 @@ compiles and runs; the output shown in each chapter is the program's actual outp
 For the terse, citation-backed reference, see [`../language-specification.md`](../language-specification.md).
 This guide is the *learning path*; the spec is the *contract*.
 
+## Getting the toolchain
+
+Everything below assumes a `nova` binary on your `PATH`. Nova is currently a build-from-source project
+(binary releases are coming): clone the repository and build the toolchain with the bundled Zig
+toolchain, which produces a self-contained `nova` (it carries its own linker and runtime, so no system
+`clang` or LLVM is needed to compile a program). [Chapter 22](22-building-and-distribution.md) walks
+through building and packaging the toolchain, including cross-compiling it for another machine. Once
+`nova` is on your `PATH`, the rest of this guide runs as shown.
+
+> On Windows, build and run inside WSL2 for now; native Windows is a cross-compile *target*, not yet a
+> run-verified host. See the repository's Windows notes.
+
 ## Running the examples
 
 ```sh
