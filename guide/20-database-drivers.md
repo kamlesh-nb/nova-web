@@ -517,3 +517,5 @@ a `Repository`. `str.Str.toOwned()` promotes a view to an owned string when a va
   changing one file. It also covers the full MongoDB document API.
 - The Deploying chapter runs a NovaDB-backed service under the orchestrator, which itself stores its
   desired state in NovaDB over this same driver.
+- Chapter 25 documents NovaDB the database itself: the storage engine behind this driver, its SQL and
+  document modes, running the server, and its `db.json` configuration.

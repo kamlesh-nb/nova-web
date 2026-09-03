@@ -563,4 +563,6 @@ MongoDB driver, and vice versa.
 - Chapter 19 for package management: how you add a driver dependency with `nova get`.
 - Chapter 20 for the database drivers, each with its intro, package deployment, and connection string.
 - Chapter 23 for deploying this NovaDB-backed app under the orchestrator (service, orchd, orchctl).
+- Chapter 25 for NovaDB itself: the engine on the other end of the connection, its SQL and document modes,
+  and how to run and configure the server.
 - Chapter 16 for `@serializable`, which powers both JSON responses and the ORM binder.

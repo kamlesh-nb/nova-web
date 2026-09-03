@@ -61,6 +61,7 @@ functions run with `nova test <file>.nova`.
 | 22 | [Building & distributing](22-building-and-distribution.md) | `nova build`, cross-compiling programs, packaging toolchain bundles + checksums |
 | 23 | [Deploying with the orchestrator](23-deploying-with-the-orchestrator.md) | `service`/`orchd`/`orchctl`, load-balanced replicas, the config store on NovaDB |
 | 24 | [Artifact delivery: the blob store](24-blob-store.md) | content-addressed `artifactd`, sha PUT/GET, Bearer auth, deploy by digest |
+| 25 | [NovaDB: the database itself](25-novadb.md) | what NovaDB is (and is not), the B+Tree/MVCC/WAL engine, SQL vs document mode, running the server, `db.json`, durability, cross-compiling |
 
 > **Version:** tracks `nova version` (Beta 0.1.0). Syntax may still change per
 > [`../STABILITY.md`](../STABILITY.md).

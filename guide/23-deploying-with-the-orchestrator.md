@@ -1,10 +1,16 @@
 # 23. Deploying with the orchestrator
 
 You have a NovaDB-backed web service (Chapter 18). This chapter runs it in production shape: several
-replicas behind a load balancer, supervised and kept at their desired count, with configuration held in
-NovaDB. Nova ships a small orchestrator for exactly this. It is a container-free, Kubernetes-style
-control plane that runs your workloads as ordinary native binaries (no images, no container runtime),
-split into a handful of binaries that mirror the Kubernetes control-plane / data-plane split.
+replicas behind a load balancer, supervised and kept at their desired count. Nova ships a small
+orchestrator for exactly this. It is a container-free, Kubernetes-style control plane that runs your
+workloads as ordinary native binaries (no images, no container runtime), split into a handful of
+binaries that mirror the Kubernetes control-plane / data-plane split.
+
+The orchestrator's own configuration (workload specs, the leader lease, cluster membership) is a tiny,
+low-churn data set: a few megabytes even across thousands of apps. So it does not run a database of its
+own. That state lives in `artifactd`, the same content-addressed blob service that already distributes
+your deploy binaries, which hosts a small key-value config store beside the blobs. There is no separate
+database process in the control plane to stand up, secure, or back up.
 
 The orchestrator lives in `packages/nova-orchestrator`; its `README.md` and `docs/runbooks.md` are the
 operator references. `lang/docs/guide/examples/run-live.sh` runs everything in this chapter against the
@@ -50,15 +56,19 @@ mode, `nova <src> -o <out> --target <triple>`. The supported cross triples are `
                         service  (:8090, round-robin, health checks)
                         /     \
         app replica A (:8080)  app replica B (:8081)     <- your NovaDB-backed web app
-                        \     /
-                         NovaDB (:3009)                  <- app data AND orchestrator config
+                 |      \     /               |
+                 |    NovaDB (:3009)          |          <- YOUR app's data (the products table)
+                 |                            |
+                 +---- artifactd (:8135) -----+          <- deploy blobs + orchestrator config store
                            ^
                          orchd  (reconciles replicas, writes the discovery file service reads)
 ```
 
-The same NovaDB instance holds two things: your application data (the `products` table) and the
-orchestrator's own configuration store (cluster membership, workload definitions). That is why the
-config store speaks the `novadb://` connection string you met in Chapter 18.
+Two stores with two jobs, and they are separate. Your **application** keeps its data in whatever
+database it chose in Chapter 18 (here NovaDB, holding the `products` table). The **orchestrator** keeps
+its own control-plane state (cluster membership, workload definitions, the leader lease) in `artifactd`'s
+config store. The orchestrator does not touch your app's database, and your app does not touch the config
+store.
 
 ## service: the data plane
 
@@ -108,7 +118,7 @@ port of its own.
 {
   "manifestsDir": "manifests", "reconcileMs": 2000, "nodeId": "node-1",
   "discoveryFile": "discovery.txt", "metricsFile": "metrics.prom",
-  "store": { "enabled": true, "addr": "127.0.0.1:3009", "user": "admin", "dbname": "nova" }
+  "store": { "enabled": true, "addr": "127.0.0.1:8135", "token": "", "tls": false }
 }
 ```
 
@@ -119,8 +129,9 @@ orchd orchd.json               # run the reconcile loop
 
 The `store.enabled` flag chooses orchd's mode. With the store disabled it runs standalone: it reconciles
 from a local manifest directory with no config store and no leader lease. With the store enabled it runs
-the HA path: it connects to NovaDB, takes the leader lease, and reconciles desired state read from the
-store. Both are covered below.
+the HA path: it points at `artifactd`'s config store (`addr` is artifactd's host:port, `token` is the
+same deploy bearer token artifactd guards its routes with, `tls` selects https), takes the leader lease,
+and reconciles desired state read from the store. Both are covered below.
 
 ## The declarative manifest
 
@@ -136,10 +147,9 @@ kind: App
 metadata:
   name: shop
 workload:
-  binary: ./build/release/bin/webapp
-  args:
-    - --config
-    - prod
+  # Either a local path (binary:) OR a content-addressed digest (artifact:). The deploy action fills in
+  # artifact with the sha of the binary it uploaded, so the manifest names the exact bytes to run.
+  artifact: sha256:__ARTIFACT__
   restartPolicy: always      # always | on-failure | never
 replicas:
   min: 2
@@ -170,11 +180,26 @@ resources:
   cpuMilli: 500
   memMaxBytes: 268435456
   pidsMax: 128
+config:                      # the app's OWN configuration, env-file style (KEY=VALUE)
+  - LOG_LEVEL=info
+  - DB_URL=novadb://127.0.0.1:8135?db=shop
 ```
 
 `manifest.nova` gives you `parseManifest(text)`, `validateManifest(m)` (returns `""` when valid),
 `toYaml(m)` (round-trips), and `toSpec(m)`, which lowers a manifest to the internal run spec the
 supervisor acts on.
+
+### The manifest is also the app's config
+
+The `config:` block makes this one manifest the SINGLE source of truth: it is not just how the
+orchestrator runs the app, it is how the app configures itself. Each `KEY=VALUE` entry is injected into
+every replica as an environment variable at spawn (alongside the per-replica `NOVA_PORT`), and the app
+reads it back from the environment. So there is no second config file to keep in sync: change a value in
+the manifest, redeploy, and both the orchestrator and the app see the new value. A Nova web app reads
+these with a small config helper (see the `examples/webapp/src/appconfig.nova` `AppConfig`, e.g.
+`cfg.port()` for `NOVA_PORT` and `cfg.get("DB_URL", "...")` for a manifest key). Run the same binary
+locally with no orchestrator and the plain process environment (or the app's defaults) applies, so it
+still works with zero config.
 
 There is also a **legacy JSON `Spec`** schema in `src/orch/spec.nova`, parsed by `parseSpec(text)`. It
 carries the same intent in a flatter, older shape (`name`, `binaryPath`, `args`, `restartPolicy`,
@@ -182,36 +207,45 @@ carries the same intent in a flatter, older shape (`name`, `binaryPath`, `args`,
 binaries, which the next chapter covers). New manifests should use the YAML form; the JSON `Spec` is
 still parsed for existing deployments.
 
-## The NovaDB-backed config store
+## The artifactd-hosted config store
 
-When `store.enabled` is set, the `store` block is turned into a NovaDB connection string by the
-orchestrator's `storeConnectionString` helper (in `src/cfg/config.nova`). It produces exactly the
-`novadb://user:password@host:port?db=...&tls=...` URL the driver from Chapter 18 parses, so the same
-NovaDB instance and the same DSN shape serve both your app data and the control plane's state. TLS
-options follow the driver: `tls=verify` verifies the server certificate against a CA file, `tls=true`
-encrypts without verifying. The `StoreConfig` validation enforces that verify implies a CA file and that
-verify implies TLS.
+When `store.enabled` is set, orchd reaches its config store over HTTP at `artifactd`. The `store` block
+becomes a base URL through the `storeBaseUrl` helper (in `src/cfg/config.nova`): `http://host:port`, or
+`https://host:port` when `tls` is set. There is no database connection string and no database process,
+which is the whole point of the move: the control-plane data set is a few megabytes, and it never needed
+a general database. It needed exactly four things, and a small key-value store gives all four: mutable
+named keys, an atomic compare-and-set (the leader-lease split-brain guard), prefix listing, and a
+since-revision watch.
 
 orchd opens the store in its HA path like this:
 
 ```
-let dsn = config.storeConnectionString(c.store);
-let conn = await novadb.NovaDriver().connect(dsn);
-let store = sqlconfig.SqlConfigStore(conn);
-let _s = await store.ensureSchema();
+let base = config.storeBaseUrl(c.store);
+let store = httpconfig.HttpConfigStore(base, c.store.token);
+let _s = await store.ensureSchema();      // a no-op ping; artifactd self-initialises
 ```
 
-`SqlConfigStore` (in `src/store/sqlconfig.nova`) is an etcd-shaped key-value store on top of NovaDB: a
-monotonic global revision, a per-key modification revision, prefix listing, compare-and-swap on a
-revision, delete, and a poll-based watch. It keeps two tables, `config` and `config_meta`. The keys it
-persists are worth knowing:
+`HttpConfigStore` (in `src/store/httpconfig.nova`) is an etcd-shaped key-value client: a monotonic global
+revision, a per-key modification revision, prefix listing, compare-and-swap on a revision, delete, and a
+poll-based watch. Each method is one request to artifactd's `/cfg/*` routes, guarded by the same deploy
+token. The keys it persists are worth knowing:
 
 - desired workload state under the `workloads/` prefix,
 - the leader lease under `leases/orchd`,
 - cluster membership under `members/<id>`.
 
-There is also an in-memory sibling, `ConfigStore` in `src/store/config.nova`, which is what the offline
-`orchctl` and the backup tooling operate on.
+The store logic itself is the same in-memory core, `ConfigStore` in `src/store/config.nova`, that the
+offline `orchctl` and the backup tooling operate on. artifactd hosts one instance of it behind its
+routes (`src/artifacts/cfgstore.nova`), snapshots it to a file after every write so it survives a
+restart with each key's revision intact, and serves one request at a time on its single reactor. That
+last point is what makes the leader election correct: every compare-and-set is a single synchronous call
+into one store, so two racing orchd nodes are serialised and exactly one wins an epoch. It is a simpler,
+more obviously-correct arbiter than a distributed transaction.
+
+**One honest caveat.** artifactd is a single coordination point, exactly as a shared database would have
+been. Multiple orchd nodes fail over correctly against it, but making the coordinator *itself* highly
+available (a replicated, standby artifactd) is a separate, larger piece and is not built yet. For a
+single artifactd with several orchd nodes, failover is correct today.
 
 ## Discovery file to load balancing
 
@@ -279,9 +313,10 @@ a synchronous sibling in `lease.nova`). orchd builds it in its HA path against t
 a TTL of `max(reconcileMs * 5, 15000)` ms. The lease value encodes `holder|epoch|deadlineMs`. Acquisition
 is a compare-and-swap on the lease key, and the epoch is bumped on every takeover. Safety rests on that
 **fencing epoch**, not on wall-clock time: the CAS guarantees exactly one winner per epoch, and a new
-leader raises the store's write fence (`SET FENCE EPOCH n`) so a stale former leader's writes are
-rejected. Each reconcile tick renews or acquires the lease, guards against a degraded store by stepping
-down when it is unreachable, and only the confirmed leader reads `workloads/` and reconciles from it.
+leader raises the store's write fence (a `/cfg/epoch` call to artifactd) so a stale former leader's spec
+writes are rejected. Each reconcile tick renews or acquires the lease, guards against a degraded store by
+stepping down when it is unreachable, and only the confirmed leader reads `workloads/` and reconciles
+from it.
 
 ## Zero-downtime fd-handoff
 
@@ -331,9 +366,9 @@ it, then lets it rejoin, so a rolling upgrade never takes down the quorum.
 Backup and restore are a supported operation, though they are not a distinct `orchctl` subcommand.
 `src/orch/backup.nova` provides `dump(store, prefix)` (line-oriented, escaped `key<TAB>value`) and
 `restore(store, data)` (re-applies each entry, last write wins). `orchctl` is the operator surface over
-such a dump: loading a file is a restore into an in-memory store, saving it is a dump. Physical
-btree-tier backup and restore of the underlying NovaDB is a NovaDB operation, documented in the
-orchestrator's `docs/runbooks.md`.
+such a dump: loading a file is a restore into an in-memory store, saving it is a dump. The live config
+store itself is durable without any of this: artifactd snapshots it to `<root>/config.snap` after every
+write and reloads it on start, so a restart keeps every key at its original revision.
 
 ## The whole loop end to end
 
@@ -360,8 +395,9 @@ lang/docs/guide/examples/run-live.sh
 ## Where to go next
 
 - Chapter 17 for the web app and the reactor-native server this deploys.
-- Chapter 18 for the NovaDB-backed app and the `novadb://` connection string the config store reuses.
-- Chapter 24 for artifact delivery: `artifactd`, the content-addressed blob store, and pulling a deploy
-  binary by hash.
+- Chapter 18 for the NovaDB-backed app and the `novadb://` connection string your application uses (a
+  separate concern from the control-plane config store, which is on artifactd).
+- Chapter 24 for artifact delivery: `artifactd`, the content-addressed blob store it also hosts, and
+  pulling a deploy binary by hash.
 - `packages/nova-orchestrator/README.md` and `docs/runbooks.md` for the full operator reference,
   including leader loss, split-brain, and store-outage runbooks.
