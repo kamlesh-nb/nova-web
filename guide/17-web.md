@@ -256,8 +256,11 @@ fn buildApp(): App {
 
 fn main(): void {
     let app = buildApp();
-    console.log("Listening on http://127.0.0.1:8080");
-    app.run(8080);
+    // The port is read from app.yaml (config.port) via app.config, or --port if the orchestrator passed
+    // one, else the default. See Chapter 18 for the config seam; app config is file-based, not env vars.
+    let port = app.config.port(8080);
+    console.log("Listening on http://127.0.0.1:" + `${port}`);
+    app.run(port);
 }
 ```
 
@@ -333,13 +336,13 @@ nova test tests/features/products_test.nova
 
 ## The same app over a real database
 
-The example includes `main_novadb.nova` at the project root: the SAME app over a
-real NovaDB. Look at it beside `src/main.nova` and only the composition root
+The example includes `main_postgres.nova` at the project root: the SAME app over a
+real PostgreSQL. Look at it beside `src/main.nova` and only the composition root
 differs. Every feature slice, the repository, the handlers, and the views are
 identical, because they depend on the `Connection` trait, never on a driver.
 
 ```nova
-// main_novadb.nova  (excerpt)
+// main_postgres.nova  (excerpt)
 fn buildApp(dsn: string, poolSize: int): App {
     let app = App();
     let conn = PooledConnection(dsn, poolSize);   // built now; connects lazily, per request
@@ -351,14 +354,14 @@ fn buildApp(dsn: string, poolSize: int): App {
 ```
 
 `PooledConnection` (in `Shared/pooled_connection.nova`) wraps a
-`pool.Pool(NovaDriver(), dsn, size)` and implements `Connection` by acquiring a
+`pool.Pool(PgDriver(), dsn, size)` and implements `Connection` by acquiring a
 connection per call, running the statement, and releasing it. The pool is built
 synchronously and opens its connections lazily inside a request, which is the
 pattern to reach for: opening a connection is asynchronous, and you cannot drive
 an asynchronous call to completion from the synchronous `main` before the event
 loop starts. Chapters 18 and 20 build this out with the ORM and the concrete
 drivers; the [`run-live.sh`](examples/run-live.sh) script runs the whole thing
-against a real NovaDB and then behind the orchestrator.
+against a real PostgreSQL and then behind the orchestrator.
 
 ## What else the app gives you
 
@@ -380,10 +383,10 @@ The framework in `web.*` covers the rest of a real application:
 
 - **Chapter 18, Data access and the ORM**, takes the `Connection` seam further:
   `DbValue`, the micro-ORM, the generic `Repository<T>`, connection strings, and
-  backing this app with NovaDB.
+  backing this app with PostgreSQL.
 - **Chapter 19, Package management**, explains `project.json` and how the
   compiler resolves a driver dependency.
-- **Chapter 20, Database drivers**, introduces each driver (NovaDB, PostgreSQL,
-  MySQL, SQL Server, MongoDB) and how to add it to a project.
+- **Chapter 20, Database drivers**, introduces each driver (PostgreSQL, MySQL,
+  SQL Server, MongoDB) and how to add it to a project.
 - **Chapter 23, Deploying with the orchestrator**, runs replicas of this app
-  behind a load balancer with a NovaDB-backed config store.
+  behind a load balancer.

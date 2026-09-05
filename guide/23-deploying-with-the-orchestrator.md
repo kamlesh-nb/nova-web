@@ -1,6 +1,6 @@
 # 23. Deploying with the orchestrator
 
-You have a NovaDB-backed web service (Chapter 18). This chapter runs it in production shape: several
+You have a PostgreSQL-backed web service (Chapter 18). This chapter runs it in production shape: several
 replicas behind a load balancer, supervised and kept at their desired count. Nova ships a small
 orchestrator for exactly this. It is a container-free, Kubernetes-style control plane that runs your
 workloads as ordinary native binaries (no images, no container runtime), split into a handful of
@@ -55,9 +55,9 @@ mode, `nova <src> -o <out> --target <triple>`. The supported cross triples are `
 ```
                         service  (:8090, round-robin, health checks)
                         /     \
-        app replica A (:8080)  app replica B (:8081)     <- your NovaDB-backed web app
+        app replica A (:8080)  app replica B (:8081)     <- your PostgreSQL-backed web app
                  |      \     /               |
-                 |    NovaDB (:3009)          |          <- YOUR app's data (the products table)
+                 |  PostgreSQL (:5432)        |          <- YOUR app's data (the products table)
                  |                            |
                  +---- artifactd (:8135) -----+          <- deploy blobs + orchestrator config store
                            ^
@@ -65,7 +65,7 @@ mode, `nova <src> -o <out> --target <triple>`. The supported cross triples are `
 ```
 
 Two stores with two jobs, and they are separate. Your **application** keeps its data in whatever
-database it chose in Chapter 18 (here NovaDB, holding the `products` table). The **orchestrator** keeps
+database it chose in Chapter 18 (here PostgreSQL, holding the `products` table). The **orchestrator** keeps
 its own control-plane state (cluster membership, workload definitions, the leader lease) in `artifactd`'s
 config store. The orchestrator does not touch your app's database, and your app does not touch the config
 store.
@@ -96,7 +96,7 @@ the health path; a backend is taken out after `fall` consecutive failures and re
 successes. `service` refuses to start with zero live backends, so a misconfigured pool fails loudly
 instead of silently black-holing traffic.
 
-Your app already supports running many replicas on one host: `main_novadb.nova` honours `NOVA_PORT`, so
+Your app already supports running many replicas on one host: `main_postgres.nova` honours `NOVA_PORT`, so
 `NOVA_PORT=8080 ./webapp` and `NOVA_PORT=8081 ./webapp` give you two replicas for service to balance.
 
 > **Note.** `service` runs on the reactor-native socket path (the same one the web server uses in
@@ -147,9 +147,13 @@ kind: App
 metadata:
   name: shop
 workload:
-  # Either a local path (binary:) OR a content-addressed digest (artifact:). The deploy action fills in
-  # artifact with the sha of the binary it uploaded, so the manifest names the exact bytes to run.
-  artifact: sha256:__ARTIFACT__
+  # A local path (binary:) OR a content-addressed digest (artifact:). Here we run a locally built binary
+  # and select its config profile with an argument. The deploy action can instead fill in artifact: with
+  # the sha of the binary it uploaded, so the manifest names the exact bytes to run.
+  binary: ./build/release/bin/webapp
+  args:
+    - --config
+    - prod
   restartPolicy: always      # always | on-failure | never
 replicas:
   min: 2
@@ -180,26 +184,39 @@ resources:
   cpuMilli: 500
   memMaxBytes: 268435456
   pidsMax: 128
-config:                      # the app's OWN configuration, env-file style (KEY=VALUE)
-  - LOG_LEVEL=info
-  - DB_URL=novadb://127.0.0.1:8135?db=shop
 ```
 
 `manifest.nova` gives you `parseManifest(text)`, `validateManifest(m)` (returns `""` when valid),
 `toYaml(m)` (round-trips), and `toSpec(m)`, which lowers a manifest to the internal run spec the
 supervisor acts on.
 
-### The manifest is also the app's config
+### Where the app's own config lives
 
-The `config:` block makes this one manifest the SINGLE source of truth: it is not just how the
-orchestrator runs the app, it is how the app configures itself. Each `KEY=VALUE` entry is injected into
-every replica as an environment variable at spawn (alongside the per-replica `NOVA_PORT`), and the app
-reads it back from the environment. So there is no second config file to keep in sync: change a value in
-the manifest, redeploy, and both the orchestrator and the app see the new value. A Nova web app reads
-these with a small config helper (see the `examples/webapp/src/appconfig.nova` `AppConfig`, e.g.
-`cfg.port()` for `NOVA_PORT` and `cfg.get("DB_URL", "...")` for a manifest key). Run the same binary
-locally with no orchestrator and the plain process environment (or the app's defaults) applies, so it
-still works with zero config.
+The manifest above describes only how the orchestrator *runs* the app; it does not carry the app's own
+configuration. Nova keeps application config **file-based and outside the orchestrator on purpose**. The
+app reads it from an `app.yaml` at the project root through the framework loader `web.config`, which the
+framework calls once when `App()` is constructed and exposes as `app.config`:
+
+```nova
+// app.yaml at the project root
+config:
+  port: 8080
+  logLevel: info
+```
+
+```nova
+// in main(): read a value with a default, or bind a typed section
+let port = app.config.port(8080);           // --port argv, else config.port, else the default
+let db = app.config.bind<DbSettings>("db"); // an @serializable section
+```
+
+The orchestrator never injects app config as environment variables (co-located apps would collide on the
+same names), and orchd does not parse an app `config:` section even if one is present in the manifest
+file: `src/orch/manifest.nova` deliberately ignores the `config:` key when binding a `Manifest`, and
+`src/orch/spec.nova` states the same. What the orchestrator does pass to a replica is operational: the
+`--config <profile>` argument from `workload.args` (selecting, say, the `prod` profile) and the port. So
+the same binary runs locally with no orchestrator, reading its `app.yaml` directly, and works with zero
+extra wiring.
 
 There is also a **legacy JSON `Spec`** schema in `src/orch/spec.nova`, parsed by `parseSpec(text)`. It
 carries the same intent in a flatter, older shape (`name`, `binaryPath`, `args`, `restartPolicy`,
@@ -374,11 +391,10 @@ write and reloads it on start, so a restart keeps every key at its original revi
 
 `lang/docs/guide/examples/run-live.sh` puts it together against the real binaries. It:
 
-1. builds and starts NovaDB on `127.0.0.1:3009`, and seeds a `products` table over NovaDB's HTTP SQL
-   endpoint,
-2. builds the NovaDB-backed web app (`main_novadb.nova`) and starts two replicas on 8080 and 8081 via
-   `NOVA_PORT`,
-3. exercises the app directly: a `POST /api/products` write through to NovaDB and a
+1. connects to PostgreSQL on `127.0.0.1:5432` and seeds a `products` table,
+2. builds the PostgreSQL-backed web app (`main_postgres.nova`) and starts two replicas on 8080 and 8081
+   via `NOVA_PORT`,
+3. exercises the app directly: a `POST /api/products` write through to PostgreSQL and a
    `GET /api/products/1` read back,
 4. builds the orchestrator with `./build.sh`, writes a `service.json` for the two replicas, validates it
    with `service --check`, starts `service` on 8090, and curls `GET /api/products/1` through the proxy
@@ -395,8 +411,8 @@ lang/docs/guide/examples/run-live.sh
 ## Where to go next
 
 - Chapter 17 for the web app and the reactor-native server this deploys.
-- Chapter 18 for the NovaDB-backed app and the `novadb://` connection string your application uses (a
-  separate concern from the control-plane config store, which is on artifactd).
+- Chapter 18 for the PostgreSQL-backed app and the `postgresql://` connection string your application
+  uses (a separate concern from the control-plane config store, which is on artifactd).
 - Chapter 24 for artifact delivery: `artifactd`, the content-addressed blob store it also hosts, and
   pulling a deploy binary by hash.
 - `packages/nova-orchestrator/README.md` and `docs/runbooks.md` for the full operator reference,
