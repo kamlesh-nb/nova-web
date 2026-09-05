@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Nova Lang Promotion JS Logic - Interactive Simulator & Documentation Viewer
+   Kyte Lang Promotion JS Logic - Interactive Simulator & Documentation Viewer
    ========================================================================== */
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -83,7 +83,7 @@ fn reconcileWorkload(manifest: string): void {
 
     const TOUR_CODE = {
         web: {
-            file: "main.nova",
+            file: "main.ky",
             title: "Web Accept Visualizer",
             desc: "Register API endpoints and handlers in ASP.NET vertical slice format. App loops run in process over SO_REUSEPORT, mapping connections straight to pinned core processors without intermediate network proxy layers.",
             code: `import web.app;
@@ -102,7 +102,7 @@ fn main(): int {
 }`
         },
         db: {
-            file: "repository.nova",
+            file: "repository.ky",
             title: "Database Trait Seam",
             desc: "NovaDB acts as an exchangeable storage engine backing standard Connection traits. Dynamic SQL binding leverages raw pointer indices, keeping transaction calls lock-free and isolated per core reactor.",
             code: `import data.db;
@@ -123,7 +123,7 @@ class ProductRepository {
 }`
         },
         actor: {
-            file: "worker.nova",
+            file: "worker.ky",
             title: "Actor Model & Mailboxes",
             desc: "Actors process message streams via asynchronous bounded channels. Since each reactor drives coroutine suspension natively, tasks park without holding up core thread contexts.",
             code: `import concurrency.actor;
@@ -142,7 +142,7 @@ class DatabaseWorker : Actor<Command> {
 }`
         },
         sandbox: {
-            file: "supervisor.nova",
+            file: "supervisor.ky",
             title: "cgroups-v2 & Process Sandbox",
             desc: "The orchestrator uses native Linux namespaces to restrict cpu, memory and pids. On macOS, this configuration degrades gracefully to standard supervised execution.",
             code: `import os.sandbox;
@@ -290,19 +290,19 @@ fn supervisorDaemon(specPath: string): void {
     const valLimit = document.getElementById("val-limit");
 
     // Chart Nodes
-    const barLatencyNova = document.getElementById("bar-latency-nova");
+    const barLatencyKyte = document.getElementById("bar-latency-kyte");
     const barLatencyGo = document.getElementById("bar-latency-go");
     const barLatencyNode = document.getElementById("bar-latency-node");
 
-    const numLatencyNova = document.getElementById("num-latency-nova");
+    const numLatencyKyte = document.getElementById("num-latency-kyte");
     const numLatencyGo = document.getElementById("num-latency-go");
     const numLatencyNode = document.getElementById("num-latency-node");
 
-    const barMemNova = document.getElementById("bar-mem-nova");
+    const barMemKyte = document.getElementById("bar-mem-kyte");
     const barMemGo = document.getElementById("bar-mem-go");
     const barMemNode = document.getElementById("bar-mem-node");
 
-    const numMemNova = document.getElementById("num-mem-nova");
+    const numMemKyte = document.getElementById("num-mem-kyte");
     const numMemGo = document.getElementById("num-mem-go");
     const numMemNode = document.getElementById("num-mem-node");
 
@@ -320,8 +320,8 @@ fn supervisorDaemon(specPath: string): void {
         valLimit.textContent = `${limit} Replica${limit > 1 ? 's' : ''}`;
 
         // 1. Latency Calculations
-        // Nova has thread-per-core, scales linearly, stays flat
-        const latencyNova = 0.2 + (conn * 0.000005) / cores;
+        // Kyte has thread-per-core, scales linearly, stays flat
+        const latencyKyte = 0.2 + (conn * 0.000005) / cores;
         // Go has concurrency goroutines, grows slowly due to scheduler lock
         const latencyGo = 0.8 + (conn * 0.00003) + (cores * 0.05);
         // Node is single threaded, bottlenecks under concurrency and high cores
@@ -329,21 +329,21 @@ fn supervisorDaemon(specPath: string): void {
 
         // Normalize for visual bar widths (max latency represented is 25ms)
         const maxLatencyVisual = 25.0;
-        const widthLatNova = Math.min(100, Math.max(5, (latencyNova / maxLatencyVisual) * 100));
+        const widthLatKyte = Math.min(100, Math.max(5, (latencyKyte / maxLatencyVisual) * 100));
         const widthLatGo = Math.min(100, Math.max(5, (latencyGo / maxLatencyVisual) * 100));
         const widthLatNode = Math.min(100, Math.max(5, (latencyNode / maxLatencyVisual) * 100));
 
-        barLatencyNova.style.width = `${widthLatNova}%`;
+        barLatencyKyte.style.width = `${widthLatKyte}%`;
         barLatencyGo.style.width = `${widthLatGo}%`;
         barLatencyNode.style.width = `${widthLatNode}%`;
 
-        numLatencyNova.textContent = `${latencyNova.toFixed(1)} ms`;
+        numLatencyKyte.textContent = `${latencyKyte.toFixed(1)} ms`;
         numLatencyGo.textContent = `${latencyGo.toFixed(1)} ms`;
         numLatencyNode.textContent = `${latencyNode.toFixed(1)} ms`;
 
         // 2. Memory Calculations
-        // Nova compiled executable overhead is tiny: 6MB base + ~0.001MB per conn
-        const memNova = 6 + (conn * 0.0008) + (limit * 0.5);
+        // Kyte compiled executable overhead is tiny: 6MB base + ~0.001MB per conn
+        const memKyte = 6 + (conn * 0.0008) + (limit * 0.5);
         // Go app overhead is medium: 25MB base + ~0.008MB per conn
         const memGo = 24 + (conn * 0.006) + (limit * 2.0);
         // Node running inside docker is heavy: 120MB V8 base + ~0.04MB per conn + docker namespaces (20MB base)
@@ -351,15 +351,15 @@ fn supervisorDaemon(specPath: string): void {
 
         // Normalize for visual bar widths (max memory represented is 4GB = 4096MB)
         const maxMemVisual = 4096.0;
-        const widthMemNova = Math.min(100, Math.max(3, (memNova / maxMemVisual) * 100));
+        const widthMemKyte = Math.min(100, Math.max(3, (memKyte / maxMemVisual) * 100));
         const widthMemGo = Math.min(100, Math.max(3, (memGo / maxMemVisual) * 100));
         const widthMemNode = Math.min(100, Math.max(3, (memNode / maxMemVisual) * 100));
 
-        barMemNova.style.width = `${widthMemNova}%`;
+        barMemKyte.style.width = `${widthMemKyte}%`;
         barMemGo.style.width = `${widthMemGo}%`;
         barMemNode.style.width = `${widthMemNode}%`;
 
-        numMemNova.textContent = memNova > 1024 ? `${(memNova / 1024).toFixed(2)} GB` : `${Math.round(memNova)} MB`;
+        numMemKyte.textContent = memKyte > 1024 ? `${(memKyte / 1024).toFixed(2)} GB` : `${Math.round(memKyte)} MB`;
         numMemGo.textContent = memGo > 1024 ? `${(memGo / 1024).toFixed(2)} GB` : `${Math.round(memGo)} MB`;
         numMemNode.textContent = memNode > 1024 ? `${(memNode / 1024).toFixed(2)} GB` : `${Math.round(memNode)} MB`;
     }
@@ -542,13 +542,13 @@ fn supervisorDaemon(specPath: string): void {
     }
 
     function initDocsMenu() {
-        if (!window.NOVA_DOCS) {
+        if (!window.KYTE_DOCS) {
             console.error("Documentation data (docs.js) was not loaded.");
             return;
         }
 
         docsMenuList.innerHTML = "";
-        const keys = Object.keys(window.NOVA_DOCS);
+        const keys = Object.keys(window.KYTE_DOCS);
         
         keys.forEach((key, idx) => {
             const li = document.createElement("li");
@@ -571,7 +571,7 @@ fn supervisorDaemon(specPath: string): void {
     }
 
     function loadDocContent(key) {
-        const mdContent = window.NOVA_DOCS[key];
+        const mdContent = window.KYTE_DOCS[key];
         if (mdContent) {
             docsContentPane.innerHTML = renderMarkdown(mdContent);
             docsContentPane.scrollTop = 0;

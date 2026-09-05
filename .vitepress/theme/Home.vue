@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { withBase } from 'vitepress'
-// The landing is a "stack ledger": Nova shown as the sequence of layers it unifies, each row noting
+// The landing is a "stack ledger": Kyte shown as the sequence of layers it unifies, each row noting
 // what it replaces. The numbering is real (source -> running system), not decoration.
 const layers = [
   { n: '01', name: 'Language', detail: 'Statically typed, ES6 syntax, compiled to native via LLVM.', repl: 'no runtime surprises', tone: 'azure' },
@@ -22,7 +22,7 @@ const pillars = [
   {
     tone: 'green', tag: 'NovaDB',
     title: 'A database for the same stack',
-    body: 'NovaDB is a separate service, deployed on its own like any database, but purpose-built for Nova: a B+Tree engine with MVCC reads, a write-ahead log, and a SQL front end over a compact binary protocol. It is the default store, reached by one connection string; Nova also drives PostgreSQL, MySQL, SQL Server, and MongoDB through the same seam.',
+    body: 'NovaDB is a separate service, deployed on its own like any database, but purpose-built for Kyte: a B+Tree engine with MVCC reads, a write-ahead log, and a SQL front end over a compact binary protocol. It is the default store, reached by one connection string; Kyte also drives PostgreSQL, MySQL, SQL Server, and MongoDB through the same seam.',
     link: '/guide/18-data-access', cta: 'Data access',
   },
   {
@@ -47,10 +47,10 @@ const chips = [
     <!-- Masthead: a compact spec header, not a hero. -->
     <header class="nv-mast">
       <div class="nv-mast-line">
-        <span class="nv-kicker">nova // a language for hypermedia services</span>
+        <span class="nv-kicker">kyte // a language for hypermedia services</span>
         <span class="nv-kicker nv-kicker-dim">beta 0.1.0</span>
       </div>
-      <h1 class="nv-word">Nova</h1>
+      <h1 class="nv-word">Kyte</h1>
       <p class="nv-lede">
         A statically-typed language built for <em>hypermedia</em> web applications, where the server
         renders HTML the browser swaps in. Your whole service compiles to one native binary: the runtime,
@@ -65,11 +65,11 @@ const chips = [
     </header>
 
     <!-- The signature: the stack ledger. -->
-    <section class="nv-stack" aria-label="What Nova unifies">
+    <section class="nv-stack" aria-label="What Kyte unifies">
       <div class="nv-stack-aside">
         <span class="nv-eyebrow">The stack, collapsed</span>
         <p class="nv-stack-note">
-          The first five layers compile into your one binary, written in Nova itself, so a service does
+          The first five layers compile into your one binary, written in Kyte itself, so a service does
           not stitch them together from separate projects. NovaDB and the orchestrator are companion
           services, built for the same stack, that you deploy alongside it.
         </p>
@@ -102,7 +102,7 @@ const chips = [
       <div class="nv-code-side">
         <span class="nv-eyebrow">One slice, end to end</span>
         <p class="nv-code-note">
-          A web feature in Nova is a small folder: an input type, a handler, a view. The handler reads
+          A web feature in Kyte is a small folder: an input type, a handler, a view. The handler reads
           typed input with <code>ctx.bind</code> and runs its query through a repository over the
           <code>Connection</code> seam. No mediator, no dependency-injection container. This is the whole
           thing.

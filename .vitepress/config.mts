@@ -1,35 +1,35 @@
 import { defineConfig } from 'vitepress'
-import novaGrammar from './grammars/nova.tmLanguage.json'
+import kyteGrammar from './grammars/kyte.tmLanguage.json'
 
 export default defineConfig({
   markdown: {
-    // Load the real Nova TextMate grammar (from the VSCode extension) so ```nova and ```nsx
+    // Load the real Kyte TextMate grammar (from the VSCode extension) so ```kyte and ```nsx
     // fences in the guide are syntax-highlighted instead of falling back to plain text.
     languages: [
-      { ...(novaGrammar as any), name: 'nova', scopeName: 'source.nova', aliases: ['nsx'] },
+      { ...(kyteGrammar as any), name: 'kyte', scopeName: 'source.ky', aliases: ['nsx'] },
     ],
   },
-  title: 'Nova',
+  title: 'Kyte',
   // Project page at https://kamlesh-nb.github.io/nova-web/ . Change to '/' for a user page or a
   // custom domain. The home component uses withBase(), so internal links follow this automatically.
   base: '/nova-web/',
   description:
-    'Nova is a statically-typed language built for hypermedia web applications, with an async thread-per-core runtime, an embedded B+Tree database (NovaDB), and a native orchestrator. One language, one toolchain, one binary.',
+    'Kyte is a statically-typed language built for hypermedia web applications, with an async thread-per-core runtime, an embedded B+Tree database (NovaDB), and a native orchestrator. One language, one toolchain, one binary.',
   cleanUrls: true,
   lastUpdated: true,
   // The guide links out to code paths (examples/, ../STABILITY.md) that do not exist in the site.
   ignoreDeadLinks: true,
   head: [
-    ['link', { rel: 'icon', href: '/nova_logo.png' }],
+    ['link', { rel: 'icon', href: '/kyte_logo.png' }],
     ['meta', { name: 'theme-color', content: '#1f6feb' }],
-    ['meta', { property: 'og:title', content: 'Nova, a language for hypermedia services' }],
+    ['meta', { property: 'og:title', content: 'Kyte, a language for hypermedia services' }],
     ['meta', {
       property: 'og:description',
       content: 'A statically-typed language built for hypermedia web applications, with a thread-per-core runtime, an embedded B+Tree database, and a native orchestrator.'
     }],
   ],
   themeConfig: {
-    logo: '/nova_logo.png',
+    logo: '/kyte_logo.png',
     nav: [
       { text: 'Guide', link: '/guide/' },
       { text: 'Language', link: '/guide/01-getting-started' },

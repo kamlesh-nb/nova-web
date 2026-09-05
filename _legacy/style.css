@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Nova Lang Promotion Stylesheet - Premium Dark Theme & Interactive Styling
+   Kyte Lang Promotion Stylesheet - Premium Dark Theme & Interactive Styling
    ========================================================================== */
 
 /* Design Tokens & Theme Variables */
@@ -886,7 +886,7 @@ p {
     transition: width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
-.bar-nova {
+.bar-kyte {
     background: linear-gradient(90deg, var(--accent-cyan), var(--accent-emerald));
     box-shadow: 0 0 10px rgba(180, 100%, 50%, 0.3);
 }
